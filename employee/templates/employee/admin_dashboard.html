@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center text-primary">Admin Dashboard</h1>
+
+    <!-- Employee Management Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4>Employee Management</h4>
+            <a href="{% url 'add_employee' %}" class="btn btn-light btn-sm">Add New Employee</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Annual Leave</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td>{{ employee.username }}</td>
+                        <td>{{ employee.email }}</td>
+                        <td>{{ employee.get_role_display }}</td>
+                        <td>{{ employee.annual_leave }} days</td>
+                        <td>
+                            <a href="{% url 'edit_employee' employee.id %}" class="btn btn-sm btn-warning">Edit</a>
+                            <form action="{% url 'delete_employee' employee.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?');">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No employees found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Leave Requests Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h4>Leave Requests</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Employee</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Leave Days</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for leave in leave_requests %}
+                    <tr>
+                        <td>{{ leave.user.username }}</td>
+                        <td>{{ leave.start_date }}</td>
+                        <td>{{ leave.end_date }}</td>
+                        <td>{{ leave.leave_days }}</td>
+                        <td>
+                            {% if leave.status == "PENDING" %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% elif leave.status == "APPROVED" %}
+                                <span class="badge bg-success">Approved</span>
+                            {% elif leave.status == "REJECTED" %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if leave.status == "PENDING" %}
+                            <a href="{% url 'approve_leave' leave.id %}" class="btn btn-sm btn-success">Approve</a>
+                            <a href="{% url 'reject_leave' leave.id %}" class="btn btn-sm btn-danger">Reject</a>
+                            {% else %}
+                            <span class="text-muted">Processed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No leave requests found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Late Attendance Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h4>Late Attendances</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Employee</th>
+                        <th>Date</th>
+                        <th>Clock In Time</th>
+                        <th>Late Minutes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attendance in late_attendances %}
+                    <tr>
+                        <td>{{ attendance.user.username }}</td>
+                        <td>{{ attendance.date }}</td>
+                        <td>{{ attendance.clock_in_time|date:"F j, Y, g:i a" }}</td>
+                        <td>{{ attendance.late_minutes }} minutes</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No late attendances found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Monthly Work Hours Report -->
+    <div class="card mt-5">
+        <div class="card-header bg-info text-white">
+            <h4>Monthly Work Hours</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Month:</strong> {{ current_month }}</p>
+            <table class="table table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Employee</th>
+                        <th>Total Hours Worked</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in monthly_report %}
+                    <tr>
+                        <td>{{ data.employee.username }}</td>
+                        <td>{{ data.total_hours|floatformat:2 }} hours</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center">No data available for this month.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

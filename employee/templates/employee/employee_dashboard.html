@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Employee Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">Welcome, {{ user.username }}</h2>
+    <p class="text-primary">Your Annual Leave: <strong>{{ user.annual_leave }}</strong> days</p>
+
+    <div class="row">
+        <!-- Giriş ve Çıkış İşlemleri -->
+        <div class="col-md-6">
+            <h3>Clock In/Out</h3>
+            <div class="d-flex gap-2">
+                <a href="{% url 'clock_in' %}" class="btn btn-success">Clock In</a>
+                <a href="{% url 'clock_out' %}" class="btn btn-danger">Clock Out</a>
+            </div>
+
+            <h4 class="mt-4">Recent Attendance</h4>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Clock In</th>
+                        <th>Clock Out</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td>{{ record.date }}</td>
+                        <td>{{ record.clock_in_time|date:"H:i" }}</td>
+                        <td>
+                            {% if record.clock_out_time %}
+                                {{ record.clock_out_time|date:"H:i" }}
+                            {% else %}
+                                <span class="text-warning">Not Clocked Out</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">No attendance records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- İzin Talepleri -->
+        <div class="col-md-6">
+            <h3>Leave Requests</h3>
+            <a href="{% url 'request_leave' %}" class="btn btn-primary mb-3">Request Leave</a>
+
+            <h4>Your Leave Requests</h4>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for leave in leave_requests %}
+                    <tr>
+                        <td>{{ leave.start_date|date:"F j, Y" }} - {{ leave.end_date|date:"F j, Y" }} ({{ leave.leave_days }} days)</td> <!-- Başlangıç tarihi, bitiş tarihi ve leave_days (izin gün sayısı) -->
+                        <td>
+                            {% if leave.status == "PENDING" %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% elif leave.status == "APPROVED" %}
+                                <span class="badge bg-success">Approved</span>
+                            {% elif leave.status == "REJECTED" %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center">No leave requests found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Aylık Çalışma Saatleri Raporu -->
+    <div class="mt-5">
+        <h3>Monthly Work Hours</h3>
+        <p><strong>Month:</strong> {{ current_month }}</p>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Total Hours Worked</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in monthly_report %}
+                <tr>
+                    <td>{{ data.employee.username }}</td>
+                    <td>{{ data.total_hours|floatformat:2 }} hours</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="text-center">No data available for this month.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

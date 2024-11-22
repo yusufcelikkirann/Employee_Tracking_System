@@ -1,0 +1,20 @@
+<table>
+    <thead>
+        <tr>
+            <th>Personel</th>
+            <th>Giriş Saati</th>
+            <th>Geç Kalma Durumu</th>
+            <th>Geç Kalma Süresi (Dakika)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for attendance in attendance_list %}
+        <tr>
+            <td>{{ attendance.user.username }}</td>
+            <td>{{ attendance.clock_in_time }}</td>
+            <td>{{ attendance.is_late }}</td>
+            <td>{{ attendance.late_minutes }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

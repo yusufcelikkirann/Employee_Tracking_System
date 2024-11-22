@@ -1,0 +1,28 @@
+<!-- templates/notifications.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notifications</title>
+    <script>
+        // WebSocket ile bağlantı kurma
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/notifications/');
+
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.getElementById('notifications').innerHTML = data.message;
+        };
+
+        function sendNotification() {
+            const message = document.getElementById('message').value;
+            socket.send(JSON.stringify({ 'message': message }));
+        }
+    </script>
+</head>
+<body>
+    <h1>Notifications</h1>
+    <div id="notifications"></div>
+    <input type="text" id="message" placeholder="Enter message">
+    <button onclick="sendNotification()">Send Notification</button>
+</body>
+</html>
