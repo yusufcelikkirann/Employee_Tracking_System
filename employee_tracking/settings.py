@@ -150,6 +150,8 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
 
+
+
 # Channels'ı ASGI sunucusu olarak ayarlama
 ASGI_APPLICATION = 'employee_tracking.asgi.application'
 
