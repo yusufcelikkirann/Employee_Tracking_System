@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    container_name: employee_tracking_system-db-1
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin_123
+      POSTGRES_DB: employee_tracking
+    networks:
+      - employee_tracking_network
+
+  web:
+    build: .
+    container_name: employee_tracking_system-web-1
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - employee_tracking_network
+
+  redis:
+    image: redis:latest
+    container_name: redis-container
+    networks:
+      - employee_tracking_network
+
+networks:
+  employee_tracking_network:
+    driver: bridge

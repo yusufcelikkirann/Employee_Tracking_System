@@ -86,11 +86,13 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'employee_tracking',
         'USER': 'postgres',
-        'PASSWORD': 'admin_123',  # Use the password you set
-        'HOST': 'localhost',
+        'PASSWORD': 'admin_123',  
+        'HOST': 'db',   # localde calistirmak icin 'localhost' yazilmali , eger docker kullanilacaksa db yazilmali 
         'PORT': '5432',
     }
 }
+
+
 
 
 
@@ -145,10 +147,8 @@ AUTH_USER_MODEL = 'employee.CustomUser'
 
 
 # settings.py
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-
+CELERY_BROKER_URL = 'redis://redis-container:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis-container:6379/0'
 
 # Channels'ı ASGI sunucusu olarak ayarlama
 ASGI_APPLICATION = 'employee_tracking.asgi.application'
