@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\YusufCelikkiran\Documents\GitHub\Employee_Tracking_System\venv
+set VIRTUAL_ENV=C:\Users\YusufCelikkiran\Downloads\Employee_Tracking_System-cca99c01f3ff1e1df250415bafd8664fb6515992\venv
 
 if not defined PROMPT set PROMPT=$P$G
 

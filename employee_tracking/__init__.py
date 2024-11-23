@@ -1,6 +1,7 @@
+# employee_tracking/__init__.py
 from __future__ import absolute_import, unicode_literals
 
-# Celery uygulamanızı import edin
+# Celery'i projeye dahil ediyoruz
 from .celery import app as celery_app
 
 __all__ = ('celery_app',)
