@@ -393,3 +393,50 @@ def monthly_report(request):
         'report_data': report_data,
         'month': today.strftime('%B %Y')
     })
+
+
+
+
+
+
+from rest_framework import viewsets
+from .models import CustomUser, Attendance, SystemSettings, LeaveRequest
+from .serializers import CustomUserSerializer, AttendanceSerializer, SystemSettingsSerializer, LeaveRequestSerializer
+
+# CustomUser ViewSet
+class CustomUserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+
+# Attendance ViewSet
+class AttendanceViewSet(viewsets.ModelViewSet):
+    queryset = Attendance.objects.all()
+    serializer_class = AttendanceSerializer
+
+# SystemSettings ViewSet
+class SystemSettingsViewSet(viewsets.ModelViewSet):
+    queryset = SystemSettings.objects.all()
+    serializer_class = SystemSettingsSerializer
+
+# LeaveRequest ViewSet
+class LeaveRequestViewSet(viewsets.ModelViewSet):
+    queryset = LeaveRequest.objects.all()
+    serializer_class = LeaveRequestSerializer
+
+
+
+# employee/views.py
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Your API",
+        default_version='v1',
+        description="API description",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="contact@yourapi.com"),
+        license=openapi.License(name="MIT"),
+    ),
+    public=True,
+)

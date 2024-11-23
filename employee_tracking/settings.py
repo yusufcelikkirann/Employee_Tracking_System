@@ -39,11 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'employee',  # Add the employee app here
+    'employee',
     'channels',
     'notifications',
-    
-    
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -94,7 +93,16 @@ DATABASES = {
 
 
 
-
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_yasg.inspectors.AutoSchema',  # Bu satır eklendi
+}
 
 
 
