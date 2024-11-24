@@ -1,13 +1,14 @@
 from django.urls import path
 from . import views
-
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
 urlpatterns = [
     # Genel Giriş ve Çıkış
     path('', views.home, name='home'),  # Home page route
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    
+
     # Dashboardlar
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('employee_dashboard/', views.employee_dashboard, name='employee_dashboard'),
@@ -23,28 +24,19 @@ urlpatterns = [
     path('reject_leave/<int:leave_id>/', views.reject_leave, name='reject_leave'),
 
     # Çalışan Yönetimi
-    path('edit_employee/<int:employee_id>/', views.edit_employee, name='edit_employee'),
-    path('delete_employee/<int:employee_id>/', views.delete_employee, name='delete_employee'),
-    path('add_employee/', views.add_employee, name='add_employee'),
-
-
-     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('add_employee/', views.add_employee, name='add_employee'),
     path('edit_employee/<int:employee_id>/', views.edit_employee, name='edit_employee'),
     path('delete_employee/<int:employee_id>/', views.delete_employee, name='delete_employee'),
 
+    # Diğer Yollar
     path('attendance/', views.attendance_list, name='attendance_list'),
     path('notifications/', views.notifications, name='notifications'),
-
-     path('login_employee/', views.employee_login, name='login_employee'),  # Çalışan giriş sayfası
+    path('login_employee/', views.employee_login, name='login_employee'),  # Çalışan giriş sayfası
     path('login_admin/', views.admin_login, name='login_admin'),  # Yetkili giriş sayfası
-    path('logout/', views.logout_view, name='logout'),
 
+    # Swagger
     path('swagger/', views.schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
-
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -57,5 +49,3 @@ schema_view = get_schema_view(
     ),
     public=True,
 )
-
-

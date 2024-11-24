@@ -3,9 +3,32 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
 from django.contrib import messages
-from .models import CustomUser, Attendance, LeaveRequest
+from django.http import HttpResponse
+from django.db.models import Sum, F, ExpressionWrapper, DurationField
+from django.db.models.functions import Now
+from datetime import datetime, timedelta
+from rest_framework import viewsets
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+# Models
+from .models import CustomUser, Attendance, LeaveRequest, SystemSettings
+
+# Forms
 from .forms import EmployeeForm
+
+# Serializers
+from .serializers import (
+    CustomUserSerializer,
+    AttendanceSerializer,
+    SystemSettingsSerializer,
+    LeaveRequestSerializer,
+)
+
+# Logging
 import logging
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,13 +57,7 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-# Admin Dashboard View
-from .models import Attendance  # Attendance modelini içe aktarın
-import logging
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .models import CustomUser, LeaveRequest, Attendance
-import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -165,13 +182,7 @@ def manage_leave(request):
     leave_requests = LeaveRequest.objects.filter(status='PENDING').order_by('-start_date')
     return render(request, 'employee/manage_leave.html', {'leave_requests': leave_requests})
 
-from datetime import timedelta
 
-from datetime import timedelta
-from django.shortcuts import get_object_or_404
-from django.contrib import messages
-from django.http import HttpResponse
-from django.db.models import Sum
 
 @login_required
 def approve_leave(request, leave_id):
@@ -185,19 +196,15 @@ def approve_leave(request, leave_id):
 
     # Kullanıcının geç kaldığı dakika bilgilerini al
     late_minutes = Attendance.objects.filter(user=leave_request.user, is_late=True).aggregate(total_late_minutes=Sum('late_minutes'))['total_late_minutes'] or 0
-
-    # Geç kalan dakikayı günlere çevirelim
-    late_days = late_minutes / 1440  # 1 gün = 1440 dakika
-
-    # İzin günlerinden geç kalan günleri düş
+    late_days = late_minutes / 1440  
     leave_days -= late_days
 
     # Eğer kullanıcının yıllık izni yeterliyse
     if leave_request.user.annual_leave >= leave_days:
         leave_request.user.annual_leave -= leave_days
-        leave_request.user.save()  # Kullanıcıyı kaydet
+        leave_request.user.save() 
         leave_request.status = 'APPROVED'
-        leave_request.save()  # İzin talebini kaydet
+        leave_request.save() 
         messages.success(request, f"Leave request approved! Total leave days after deduction: {leave_days}")
     else:
         messages.warning(request, "Not enough annual leave to approve the request.")
@@ -264,23 +271,12 @@ def add_employee(request):
     return render(request, 'employee/add_employee.html', {'form': form})
 
 
-
-
-from django.shortcuts import render
-from .models import Attendance
-
 def attendance_list(request):
     attendance_list = Attendance.objects.all()
     return render(request, 'employee/attendance_list.html', {'attendance_list': attendance_list})
 
-
-
 def notifications(request):
     return render(request, 'notifications.html')
-
-
-from django.utils.timezone import now
-from .models import Attendance
 
 def reset_all_attendance():
     today = now().date()
@@ -292,62 +288,46 @@ def reset_all_attendance():
         date=today,
     )
 
-
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
-
 # Çalışan Giriş Sayfası
 def employee_login(request):
     if request.method == 'POST':
-        # Burada çalışan için giriş kontrolünü yapabilirsiniz
+        
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
 
-        if user is not None and user.role == 'EMPLOYEE':  # Eğer kullanıcı çalışan ise
+        if user is not None and user.role == 'EMPLOYEE':  
             login(request, user)
-            return redirect('employee_dashboard')  # Çalışan dashboard'a yönlendir
+            return redirect('employee_dashboard')  
         else:
             messages.error(request, "Giriş yetkisine sahip değilsiniz!")
             pass
-    return render(request, 'employee/login_employee.html')  # Çalışan giriş sayfası
+    return render(request, 'employee/login_employee.html') 
 
 # Yetkili Giriş Sayfası
 def admin_login(request):
     if request.method == 'POST':
-        # Burada yetkili için giriş kontrolünü yapabilirsiniz
         username = request.POST['username']
         password = request.POST['password']
         user = authenticate(request, username=username, password=password)
 
-        if user is not None and user.role == 'ADMIN':  # Eğer kullanıcı yetkili ise
+        if user is not None and user.role == 'ADMIN':  
             login(request, user)
-            return redirect('admin_dashboard')  # Admin dashboard'a yönlendir
+            return redirect('admin_dashboard')  
         else:
             messages.error(request, "Giriş yetkisine sahip değilsiniz!")
             pass
 
-    return render(request, 'employee/login_admin.html')  # Yetkili giriş sayfası
+    return render(request, 'employee/login_admin.html') 
 
 
 # Çıkış işlemi
 def logout_view(request):
     logout(request)
-    return redirect('login')  # Giriş sayfasına yönlendir
+    return redirect('login')  
 
 
-from django.db.models import F, ExpressionWrapper, DurationField
-from django.db.models.functions import Now
-
-# Çalışan için o ayki çalışma saatlerini hesapla
 def calculate_work_hours(user, month, year):
-    # Kullanıcının o ayda yaptığı tüm çalışmaları al
     attendance_records = Attendance.objects.filter(
         user=user,
         clock_in_time__year=year,
@@ -357,30 +337,21 @@ def calculate_work_hours(user, month, year):
     total_minutes = 0
     for record in attendance_records:
         if record.clock_in_time and record.clock_out_time:
-            # Geçerli gün için geçen süreyi dakika olarak hesaplayalım
             worked_duration = record.clock_out_time - record.clock_in_time
-            total_minutes += worked_duration.total_seconds() / 60  # dakika cinsinden
+            total_minutes += worked_duration.total_seconds() / 60  
 
-    total_hours = total_minutes / 60  # toplam saat
+    total_hours = total_minutes / 60  
     return total_hours
-
-
-from django.shortcuts import render
-from django.http import HttpResponse
-from datetime import datetime
-from .models import Attendance, CustomUser
 
 @login_required
 def monthly_report(request):
-    # Bu ayı alalım
+    
     today = datetime.today()
     current_month = today.month
     current_year = today.year
 
-    # Tüm çalışanları alalım
     employees = CustomUser.objects.filter(role='EMPLOYEE')
 
-    # Her bir çalışanın aylık çalışma saatlerini hesaplayalım
     report_data = []
     for employee in employees:
         total_hours = calculate_work_hours(employee, current_month, current_year)
@@ -396,38 +367,21 @@ def monthly_report(request):
 
 
 
-
-
-
-from rest_framework import viewsets
-from .models import CustomUser, Attendance, SystemSettings, LeaveRequest
-from .serializers import CustomUserSerializer, AttendanceSerializer, SystemSettingsSerializer, LeaveRequestSerializer
-
-# CustomUser ViewSet
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
 
-# Attendance ViewSet
 class AttendanceViewSet(viewsets.ModelViewSet):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
 
-# SystemSettings ViewSet
 class SystemSettingsViewSet(viewsets.ModelViewSet):
     queryset = SystemSettings.objects.all()
     serializer_class = SystemSettingsSerializer
 
-# LeaveRequest ViewSet
 class LeaveRequestViewSet(viewsets.ModelViewSet):
     queryset = LeaveRequest.objects.all()
     serializer_class = LeaveRequestSerializer
-
-
-
-# employee/views.py
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(

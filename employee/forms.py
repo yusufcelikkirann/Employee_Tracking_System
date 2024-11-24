@@ -15,7 +15,6 @@ class EmployeeForm(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        # Şifreyi hashleyerek kaydet
         if self.cleaned_data['password']:
             instance.set_password(self.cleaned_data['password'])
         if commit:

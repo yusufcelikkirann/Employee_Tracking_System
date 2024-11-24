@@ -5,7 +5,6 @@ from datetime import datetime, time
 from django.utils.timezone import now
 from .tasks import notify_admin_of_late_employee
 
-# Kullanıcı Modeli
 class CustomUser(AbstractUser):
     ROLE_CHOICES = [
         ('EMPLOYEE', 'Employee'),
@@ -14,7 +13,6 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='EMPLOYEE')
     annual_leave = models.IntegerField(default=15)
 
-    # Override groups and user_permissions fields to resolve conflicts
     groups = models.ManyToManyField(
         'auth.Group',
         related_name='customuser_groups',
@@ -33,8 +31,6 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
-
-# Attendance Model (Clock In/Out)
 class Attendance(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     clock_in_time = models.DateTimeField(null=True, blank=True)
@@ -49,7 +45,7 @@ class Attendance(models.Model):
             self.is_late = self.late_minutes > 0
             self.date = self.clock_in_time.date()
 
-            # Notify if the employee is late
+            
             if self.is_late:
                 notify_admin_of_late_employee.delay(self.user.id, self.late_minutes)
 
@@ -71,32 +67,32 @@ class Attendance(models.Model):
         """Calculate hours worked based on clock-in and clock-out times."""
         if self.clock_in_time and self.clock_out_time:
             delta = self.clock_out_time - self.clock_in_time
-            return delta.total_seconds() / 3600  # Returns hours worked
+            return delta.total_seconds() / 3600 
         return 0
 
     def __str__(self):
         return f"{self.user.username} - {self.date}"
 
 
-# Calculate Late Minutes
+
 def calculate_late_minutes(clock_in_time):
-    from .models import SystemSettings  # Import to avoid circular imports
-    settings = SystemSettings.objects.first() or SystemSettings()  # Default to empty if no settings found
+    from .models import SystemSettings  
+    settings = SystemSettings.objects.first() or SystemSettings() 
 
     work_start = time(settings.work_start_time, 0)
 
     if clock_in_time.time() > work_start:
         late_duration = datetime.combine(clock_in_time.date(), clock_in_time.time()) - \
                         datetime.combine(clock_in_time.date(), work_start)
-        return late_duration.seconds // 60  # Return late minutes
+        return late_duration.seconds // 60  
     return 0
 
 
-# SystemSettings Model (Work Schedule Configuration)
+
 class SystemSettings(models.Model):
-    work_start_time = models.IntegerField(default=8)  # Work start time (08:00)
-    work_end_time = models.IntegerField(default=18)   # Work end time (18:00)
-    weekend_days = models.CharField(max_length=50, default='5,6')  # Saturday and Sunday (0 = Monday)
+    work_start_time = models.IntegerField(default=8)  
+    work_end_time = models.IntegerField(default=18)   
+    weekend_days = models.CharField(max_length=50, default='5,6')  
 
     def get_weekend_days(self):
         """Returns weekend days as a list of integers."""
@@ -112,7 +108,7 @@ class SystemSettings(models.Model):
         return f"System Settings: {self.work_start_time} - {self.work_end_time}"
 
 
-# LeaveRequest Model
+
 class LeaveRequest(models.Model):
     STATUS_CHOICES = [
         ('APPROVED', 'Approved'),
